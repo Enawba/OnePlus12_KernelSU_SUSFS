@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔥 OnePlus 12 KernelSU + SUSFS
+# OnePlus 12 KernelSU + SUSFS
 
 [![Device](https://img.shields.io/badge/Device-OnePlus%2012%20(waffle%20%2F%20SM8650)-red)](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS)
 [![KernelSU-Next](https://img.shields.io/badge/KernelSU_Next-Supported-green)](https://kernelsu-next.github.io/webpage/)
