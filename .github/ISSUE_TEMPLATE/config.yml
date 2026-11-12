@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Upstream WildKernels Community
+    url: https://github.com/WildKernels/OnePlus_KernelSU_SUSFS
+    about: Upstream OnePlus KernelSU + SUSFS build framework this project is based on.

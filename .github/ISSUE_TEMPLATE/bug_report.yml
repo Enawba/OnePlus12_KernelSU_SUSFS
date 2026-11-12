@@ -1,0 +1,101 @@
+name: Bug Report
+description: Report a bug or issue with the OnePlus 12 kernel
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > These kernels are built for **OnePlus 12 (`waffle` / `SM8650`) on Stock ROMs only** (OOS/COS).
+        > Fill in **all required fields** so the issue can be reproduced.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Confirm before submitting.
+      options:
+        - label: I have searched existing issues and this is not a duplicate.
+          required: true
+        - label: I am running a **Stock ROM** (OOS or ColorOS) on OnePlus 12.
+          required: true
+        - label: I confirmed the kernel KMI/sublevel matches my device (`uname -r`).
+          required: true
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: OnePlus 12 Variant
+      options:
+        - CPH2573
+        - CPH2581
+        - CPH2583
+        - PJD110
+    validations:
+      required: true
+
+  - type: input
+    id: oos_version
+    attributes:
+      label: OOS / COS Version
+      description: Full firmware version from Settings → About Device.
+      placeholder: "e.g. ColorOS 17.0.0 / OxygenOS 17.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: android_version
+    attributes:
+      label: Android Version
+      options:
+        - Android 17
+        - Android 16
+        - Android 15
+        - Android 14
+    validations:
+      required: true
+
+  - type: dropdown
+    id: manager_type
+    attributes:
+      label: Manager Type
+      options:
+        - KernelSU-Next
+        - KernelSU
+        - WildKSU
+    validations:
+      required: true
+
+  - type: input
+    id: manager_version
+    attributes:
+      label: Manager Version
+      description: Manager Version shown in the manager app.
+      placeholder: "e.g. v3.4.2 (33504)"
+    validations:
+      required: true
+
+  - type: input
+    id: kernel_link
+    attributes:
+      label: Kernel Release Tag or Actions Run Link
+      placeholder: "e.g. v2.4.0-r1 or https://github.com/Enawba/OnePlus12_KernelSU_SUSFS/actions/runs/..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      placeholder: "Describe what is happening..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      placeholder: "1. ...\n2. ..."
+    validations:
+      required: true
