@@ -510,10 +510,14 @@ def render_issue_body(state: dict[str, Any], diff: dict[str, Any], checked_at: s
         lines.extend(["_Baseline snapshot report triggered manually._", ""])
 
     lines.extend(_format_snapshot_tables(state))
+    owner = os.environ.get("GITHUB_REPOSITORY_OWNER", "").strip()
+    footer = "*Generated automatically by `op12-source-monitor.yml`.*"
+    if owner:
+        footer = f"*Generated automatically by `op12-source-monitor.yml` — cc @{owner}.*"
     lines.extend(
         [
             "---",
-            "*Generated automatically by `op12-source-monitor.yml`.*",
+            footer,
         ]
     )
     return "\n".join(lines)

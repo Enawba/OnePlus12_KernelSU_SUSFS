@@ -85,6 +85,7 @@ jobs:
         if: steps.monitor.outputs.need_issue == 'true'
         env:
           ISSUE_TITLE: ${{ steps.monitor.outputs.issue_title }}
+          ISSUE_OWNER: ${{ github.repository_owner }}
         shell: bash
         run: |
           set -euo pipefail
@@ -93,9 +94,16 @@ jobs:
             --color "0e8a16" \
             --description "Upstream OnePlusOSS kernel source or manifest update for OnePlus 12" \
             2>/dev/null || true
-          gh issue create \
+          if ! gh issue create \
             --repo "${{ github.repository }}" \
             --title "$ISSUE_TITLE" \
             --body-file issue_body.md \
-            --label "op12-source-update"
+            --label "op12-source-update" \
+            --assignee "$ISSUE_OWNER"; then
+            gh issue create \
+              --repo "${{ github.repository }}" \
+              --title "$ISSUE_TITLE" \
+              --body-file issue_body.md \
+              --label "op12-source-update"
+          fi
 
