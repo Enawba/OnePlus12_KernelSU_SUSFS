@@ -38,7 +38,7 @@ This repository builds **OnePlus 12 (`waffle`)** GKI AnyKernel3 packages based o
 | **SoC / Platform** | Qualcomm Snapdragon 8 Gen 3 (`SM8650` / `pineapple`) |
 | **Kernel KMI** | `android14-6.1` |
 | **Supported ROMs** | Stock OxygenOS / ColorOS only |
-| **Kernel `uname` Suffix** | `OP12-SUSFS` *(from next release onwards; `v2.4.0-r1` used `OP-WILD`)* |
+| **Kernel `uname`** | `<kernel>-android14-OP12-SUSFS` *(e.g. `6.1.157-android14-OP12-SUSFS` from future releases onwards; initial `v2.4.0-r1` used `OP-WILD`)* |
 
 ### Supported OS & Kernel Versions
 
@@ -98,6 +98,17 @@ This repository builds **OnePlus 12 (`waffle`)** GKI AnyKernel3 packages based o
 3. Flash the AnyKernel3 ZIP to your active slot using [Kernel Flasher](https://github.com/fatalcoder524/KernelFlasher/releases).
 4. Install the matching [KernelSU-Next](https://github.com/KernelSU-Next/KernelSU-Next/releases) (or [WildKSU](https://github.com/WildKernels/Wild_KSU/releases)) Manager APK and flash [sidex15/ksu_module_susfs](https://github.com/sidex15/ksu_module_susfs/releases) inside the manager.
 5. Reboot and verify `uname -r` and root status.
+
+---
+
+## 🔍 Upstream Source Monitor
+
+An automated GitHub Actions workflow ([`op12-source-monitor.yml`](.github/workflows/op12-source-monitor.yml)) checks [`OnePlusOSS`](https://github.com/OnePlusOSS) every 12 hours (and on manual dispatch) for **OnePlus 12 (`waffle`)** updates across:
+- `OnePlusOSS/kernel_manifest` (`oneplus/sm8650` files matching `oneplus_12*`)
+- `OnePlusOSS/android_kernel_common_oneplus_sm8650`, `android_kernel_modules_and_devicetree_oneplus_sm8650`, and `android_kernel_oneplus_sm8650` (`*oneplus12*` / `waffle` branches, commit SHAs, and kernel `Makefile` sublevels)
+- Newly added `SM8650` / `OnePlus 12` repositories
+
+Snapshot state is persisted on the [`monitor-state`](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS/tree/monitor-state) branch, and any new upstream branch, manifest, or kernel update automatically opens a GitHub Issue labeled `op12-source-update`.
 
 ---
 

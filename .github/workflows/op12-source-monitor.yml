@@ -1,0 +1,101 @@
+name: OnePlus 12 Source Monitor
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+    inputs:
+      force_issue:
+        description: 'Open a summary issue even if no upstream changes occurred'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  monitor:
+    name: Check OnePlusOSS for OnePlus 12 Updates
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: 📥 Checkout Monitor Script
+        uses: actions/checkout@v6
+        with:
+          path: repo
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/op12_source_monitor.py
+
+      - name: 📦 Prepare monitor-state Branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          REMOTE_URL="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          if git ls-remote --heads "$REMOTE_URL" monitor-state | grep -q 'refs/heads/monitor-state'; then
+            git clone --depth 1 --branch monitor-state "$REMOTE_URL" state
+          else
+            mkdir -p state
+            git -C state init
+            git -C state checkout --orphan monitor-state
+            git -C state remote add origin "$REMOTE_URL"
+          fi
+
+      - name: 🔍 Check OnePlusOSS Sources
+        id: monitor
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXTRA_ARGS=()
+          if [ "${{ inputs.force_issue }}" = "true" ]; then
+            EXTRA_ARGS+=(--force-issue)
+          fi
+          python3 repo/.github/scripts/op12_source_monitor.py \
+            --state-file state/op12_source_state.json \
+            --state-readme state/README.md \
+            --summary-file report.md \
+            --issue-file issue_body.md \
+            --github-output "$GITHUB_OUTPUT" \
+            "${EXTRA_ARGS[@]}"
+
+      - name: 📝 Publish Job Summary
+        if: always() && hashFiles('report.md') != ''
+        shell: bash
+        run: cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 💾 Save Updated Monitor State
+        if: steps.monitor.outputs.state_updated == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd state
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add op12_source_state.json README.md
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(monitor): update OnePlus 12 OnePlusOSS state"
+            git push origin HEAD:monitor-state
+          fi
+
+      - name: 🔔 Open Update Notification Issue
+        if: steps.monitor.outputs.need_issue == 'true'
+        env:
+          ISSUE_TITLE: ${{ steps.monitor.outputs.issue_title }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh label create "op12-source-update" \
+            --repo "${{ github.repository }}" \
+            --color "0e8a16" \
+            --description "Upstream OnePlusOSS kernel source or manifest update for OnePlus 12" \
+            2>/dev/null || true
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "$ISSUE_TITLE" \
+            --body-file issue_body.md \
+            --label "op12-source-update"
+

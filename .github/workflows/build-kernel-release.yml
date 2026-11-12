@@ -723,6 +723,7 @@ jobs:
             echo ""
             echo "Outputs:"
             echo "  - Kernel: ${{ steps.build.outputs.kernel_version }}"
+            echo "  - Kernel Uname: ${{ steps.build.outputs.kernel_uname }}"
             if [ "${{ matrix.ksu_type }}" = "KSUN" ]; then
               echo "  - KSU Next: v${{ steps.build.outputs.ksu_version }}"
               echo "ksun_ver=${{ steps.build.outputs.ksu_version }}" >> "$GITHUB_OUTPUT"
@@ -774,6 +775,7 @@ jobs:
           | Metric | Value |
           |--------|-------|
           | **Kernel** | ${{ steps.build.outputs.kernel_version }} |
+          | **Kernel Uname** | \`${{ steps.build.outputs.kernel_uname }}\` |
           EOF
             if [ "${{ matrix.ksu_type }}" = "KSUN" ]; then
               cat >> $GITHUB_STEP_SUMMARY << EOF
@@ -941,21 +943,11 @@ jobs:
           IFS=',' read -ra active_gki_keys \
             <<< "${{ needs.set-op-model.outputs.active_gki_keys }}"
           
-          cat << EOF > release_notes.md
-          # 🎯 OnePlus 12 Kernel with KernelSU Next & SUSFS $SUSFS_BASE_VERSION
-          
-          > **Build Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')  
-          > **Build ID:** \`${{ github.run_id }}\`  
-          > **Workflow:** [\`${{ github.workflow }}\`](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          
-          ---
-          
-          ## 📦 Built Devices (${#device_info[@]} total)
-          
-          | Model | OS Version | Kernel Version | Features |
-          |-------|------------|----------------|----------|
-          EOF
-          
+          : > device_rows.md
+          declare -A seen_unames=()
+          declare -a uname_list=()
+          uname_suffix_global="OP12-SUSFS"
+
           while IFS= read -r full_key; do
             [ -z "$full_key" ] && continue
             
@@ -965,21 +957,25 @@ jobs:
             # Reconstruct the original model name (e.g. OP13r-6.1.118) in case the ZIP
             # had the kernel version suffix stripped for display. Try exact ORIG_MODEL
             # first, fall back to base MODEL, both filtered by os_version.
-            full_kv=$(echo "$kernel_ver" | sed 's/^[^-]*-//')
+            android_part="${kernel_ver%%-*}"
+            full_kv="${kernel_ver#*-}"
             possible_orig_model="${model}-${full_kv}"
             feature_flags=$(jq -r --arg MODEL "$model" --arg ORIG_MODEL "$possible_orig_model" --arg OS "$os_ver" '
               ([ .[] | select(.model == $ORIG_MODEL and .os_version == $OS) ][0]) //
               ([ .[] | select(.model == $MODEL      and .os_version == $OS) ][0]) |
-              "\(.hmbird // false)\t\(.susfs // false)\t\(.bbr // false)\t\(.bbr3 // false)\t\(.bbg // false)\t\(.ttl // false)\t\(.ip_set // false)\t\(.unicode // false)\t\(.ds // false)\t\(.ntsync // false)"
+              "\(.uname // "OP12-SUSFS")\t\(.hmbird // false)\t\(.susfs // false)\t\(.bbr // false)\t\(.bbr3 // false)\t\(.bbg // false)\t\(.ttl // false)\t\(.ip_set // false)\t\(.unicode // false)\t\(.ds // false)\t\(.ntsync // false)"
             ' <<< "$JSON_BUILD_DATA")
             
             features=()
+            uname_suffix="OP12-SUSFS"
              # If no match found, skip or handle error
             if [[ -z "$feature_flags" ]]; then
               echo "Warning: No JSON entry found for model: $model" >&2
               features_str="N/A"
             else
-              IFS=$'\t' read -r hmbird susfs bbr bbr3 bbg ttl ip_set unicode ds ntsync <<< "$feature_flags"
+              IFS=$'\t' read -r uname_suffix hmbird susfs bbr bbr3 bbg ttl ip_set unicode ds ntsync <<< "$feature_flags"
+              [ -z "$uname_suffix" ] && uname_suffix="OP12-SUSFS"
+              uname_suffix_global="$uname_suffix"
               
               # Build features string based on boolean values
               [[ "$hmbird" == "true" ]] && features+=("🐦 HMBIRD")
@@ -1015,6 +1011,12 @@ jobs:
                 done
               fi
             fi
+
+            kernel_uname="${full_kv}-${android_part}-${uname_suffix}"
+            if [[ -z "${seen_unames[$kernel_uname]+x}" ]]; then
+              seen_unames["$kernel_uname"]=1
+              uname_list+=("\`$kernel_uname\`")
+            fi
             
             if [[ "$os_ver" =~ ^A[0-9]+$ ]]; then
               os_display_version="Android ${os_ver#A}"
@@ -1024,9 +1026,34 @@ jobs:
             
             download_url="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${NEW_TAG}/${zipfile}.zip"
             model_link="[$model]($download_url)"
-            printf "| %s | %-10s | %-16s | %-48s |\n" \
-              "$model_link" "$os_display_version" "$kernel_ver" "$features_str" >> release_notes.md
+            printf "| %s | %-10s | %-18s | \`%s\` | %-48s |\n" \
+              "$model_link" "$os_display_version" "$kernel_ver" "$kernel_uname" "$features_str" >> device_rows.md
           done < <(printf '%s\n' "${!device_info[@]}" | sort)
+
+          if [ ${#uname_list[@]} -gt 0 ]; then
+            kernel_uname_display=$(printf ', %s' "${uname_list[@]}")
+            kernel_uname_display="${kernel_uname_display:2}"
+          else
+            kernel_uname_display='`6.1.157-android14-OP12-SUSFS`'
+          fi
+
+          cat << EOF > release_notes.md
+          # 🎯 OnePlus 12 Kernel with KernelSU Next & SUSFS $SUSFS_BASE_VERSION
+          
+          > **Build Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')  
+          > **Kernel Uname:** $kernel_uname_display  
+          > **Build ID:** \`${{ github.run_id }}\`  
+          > **Workflow:** [\`${{ github.workflow }}\`](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          ---
+          
+          ## 📦 Built Devices (${#device_info[@]} total)
+          
+          | Model | OS Version | Kernel Version | Kernel Uname | Features |
+          |-------|------------|----------------|--------------|----------|
+          EOF
+          cat device_rows.md >> release_notes.md
+          rm -f device_rows.md
           
           if [ ${#device_info[@]} -gt 0 ]; then
             first_entry=$(printf '%s\n' "${!device_info[@]}" | sort | head -n1)
@@ -1075,6 +1102,7 @@ jobs:
           fi
           cat << EOF >> release_notes.md
           | **SUSFS Version** | \`$SUSFS_BASE_VERSION\` |
+          | **Kernel Uname Suffix** | \`${uname_suffix_global:-OP12-SUSFS}\` |
           | **Optimization Level** | \`$OPTIMIZE_LEVEL\` |
           | **MLGO** | \`$MLGO\` |
           | **Clean Build** | $( [ "$CLEAN_BUILD" = "true" ] && echo "✅ Yes (no ccache)" || echo "❌ No (ccache enabled)" ) |

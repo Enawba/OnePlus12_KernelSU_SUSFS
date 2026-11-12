@@ -56,6 +56,9 @@ outputs:
   kernel_version:
     description: 'Full kernel version string'
     value: ${{ steps.save_metadata.outputs.kernel_version }}
+  kernel_uname:
+    description: 'Short kernel uname -r string (e.g. 6.1.157-android14-OP12-SUSFS)'
+    value: ${{ steps.collect_stats.outputs.kernel_uname }}
   ksu_version:
     description: 'KernelSU version number'
     value: ${{ steps.save_metadata.outputs.ksu_version }}
@@ -2212,9 +2215,12 @@ runs:
         BUILD_TIME="${BUILD_TIME:-0}"
         
         KERNEL_UNAME=$(strings "$IMG" | grep -E 'Linux version.*#' | tail -n1)
+        KERNEL_UNAME_SHORT=$(printf '%s\n' "$KERNEL_UNAME" | awk '{print $3}')
         echo "Kernel Uname: $KERNEL_UNAME"
+        echo "Kernel Uname Short: $KERNEL_UNAME_SHORT"
         echo "KERNEL_UNAME=$KERNEL_UNAME" >> "$GITHUB_ENV"
         
+        printf 'kernel_uname=%s\n' "$KERNEL_UNAME_SHORT" >> "$GITHUB_OUTPUT"
         printf 'warnings_count=%s\n' "$WARNINGS_COUNT" >> "$GITHUB_OUTPUT"
         printf 'image_sha256=%s\n' "$IMG_SHA256" >> "$GITHUB_OUTPUT"
         printf 'build_time=%s\n' "$BUILD_TIME" >> "$GITHUB_OUTPUT"
