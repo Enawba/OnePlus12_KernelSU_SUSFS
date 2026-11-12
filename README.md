@@ -38,7 +38,7 @@ This repository builds **OnePlus 12 (`waffle`)** GKI AnyKernel3 packages based o
 | **SoC / Platform** | Qualcomm Snapdragon 8 Gen 3 (`SM8650` / `pineapple`) |
 | **Kernel KMI** | `android14-6.1` |
 | **Supported ROMs** | Stock OxygenOS / ColorOS only |
-| **Kernel `uname`** | `<kernel>-android14-OP12-SUSFS` *(e.g. `6.1.157-android14-OP12-SUSFS` from future releases onwards; initial `v2.4.0-r1` used `OP-WILD`)* |
+| **Kernel `uname`** | `<kernel>-android14-OP12-SUSFS`|
 
 ### Supported OS & Kernel Versions
 
