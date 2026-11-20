@@ -67,11 +67,12 @@ This repository builds **OnePlus 12 (`waffle`)** GKI AnyKernel3 packages based o
 
 - 🔐 **KernelSU / KernelSU-Next**: Kernel-mode root solution for Android GKI devices
 - 🔥 **WildKSU Manager Support**: Compatible with WildKernels' custom root manager
-- 🥷 **SUSFS**: Integrated `susfs4ksu` kernel patches for mount, path, kstat, uname, cmdline, and memory-map hiding
+- 🥷 **SUSFS**: Integrated `susfs4ksu` kernel patches for mount, path, kstat, uname, cmdline, and memory-map hiding, plus ADB JDWP socket hiding
 - 🛡️ **BBG (Baseband Guard)**: LSM-based security protecting critical device partitions
 - 🖧 **BBRv1 & BBRv3**: Improved TCP congestion control
 - 🚦 **CAKE & PIE qdisc Support**: Better network schedulers
 - ✅ **Thin LTO**: Link Time Optimization enabled
+- ✅ **MLGO**: Machine Learning-Guided Optimization (`-mllvm -regalloc-enable-advisor=release`)
 - 🚀 **Optimisation Patches**: Memory, I/O, CPU scheduler, and network tunings
 - 🌐 **TTL Target Support**: Network packet TTL/HL modification
 - 🧱 **IP Set & IPv6 NAT Support**: Advanced firewall and IPv6 NAT capabilities
@@ -79,6 +80,7 @@ This repository builds **OnePlus 12 (`waffle`)** GKI AnyKernel3 packages based o
 - </> **Unicode Bypass Fix**: Mitigates path traversal detections using non-printable Unicode codepoints
 - 🖥️ **Droidspaces Support**: Portable Linux container support
 - 🔃 **NTSync**: Low-latency Windows NT synchronization primitives
+- 🔌 **Faster SDP charging**: Allow 900 mA instead of 500 mA on USB data (SDP) ports when the host port supports 900 mA (USB 3.0)
 
 ---
 
