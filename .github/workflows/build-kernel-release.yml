@@ -908,7 +908,7 @@ jobs:
           commit-hash: ${{ needs.set-op-model.outputs.ksu_resolved_hash }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 📝 Generate Device List and Final Release Notes
+      - name: Generate Device List and Final Release Notes
         id: generate-notes
         run: |
           echo "=== Start building the release notes ==="
@@ -950,14 +950,14 @@ jobs:
           MLGO_REQUESTED="${{ inputs.mlgo }}"
           MLGO="${{ needs.build.outputs.mlgo_applied || 'false' }}"
           if [ "$MLGO" = "true" ]; then
-            MLGO_STATUS="✅ Enabled"
+            MLGO_STATUS="Enabled"
             MLGO_FEATURE_LINE=$'- **MLGO** - Machine Learning-Guided Optimization (`-mllvm -regalloc-enable-advisor=release`)\n'
             MLGO_CHANGELOG=" & MLGO"
           else
             if [ "$MLGO_REQUESTED" = "true" ]; then
-              MLGO_STATUS="❌ Not applied (compiler does not support MLGO)"
+              MLGO_STATUS="Not applied (compiler does not support MLGO)"
             else
-              MLGO_STATUS="❌ Disabled"
+              MLGO_STATUS="Disabled"
             fi
             MLGO_FEATURE_LINE=""
             MLGO_CHANGELOG=""
@@ -1012,17 +1012,17 @@ jobs:
               uname_suffix_global="$uname_suffix"
               
               # Build features string based on boolean values
-              [[ "$hmbird" == "true" ]] && features+=("🐦 HMBIRD")
+              [[ "$hmbird" == "true" ]] && features+=("HMBIRD")
               [[ "$susfs" == "true" ]] && features+=("ඞ SusFS")
-              [[ "$bbr" == "true" ]] && features+=("🚀 BBR")
-              [[ "$bbr3" == "true" ]] && features+=("🚀 BBRv3")
-              [[ "$bbg" == "true" ]] && features+=("🛡️ BBG")
-              [[ "$ttl" == "true" ]] && features+=("🌐 TTL")
-              [[ "$ip_set" == "true" ]] && features+=("🧱 IP_SET & IPv6 NAT")
-              [[ "$unicode" == "true" ]] && features+=("🔧 Unicode Fix")
-              [[ "$ds" == "true" ]] && features+=("💻 Droidspaces")
-              [[ "$ntsync" == "true" ]] && features+=("🔃 NTSync")
-              [[ "$sdp900ma" == "true" ]] && features+=("🔌 Faster SDP Charging")
+              [[ "$bbr" == "true" ]] && features+=("BBR")
+              [[ "$bbr3" == "true" ]] && features+=("BBRv3")
+              [[ "$bbg" == "true" ]] && features+=("BBG")
+              [[ "$ttl" == "true" ]] && features+=("TTL")
+              [[ "$ip_set" == "true" ]] && features+=("IP_SET & IPv6 NAT")
+              [[ "$unicode" == "true" ]] && features+=("Unicode Fix")
+              [[ "$ds" == "true" ]] && features+=("Droidspaces")
+              [[ "$ntsync" == "true" ]] && features+=("NTSync")
+              [[ "$sdp900ma" == "true" ]] && features+=("Faster SDP Charging")
               
               total=${#features[@]}
               if [ $total -eq 0 ]; then
@@ -1073,7 +1073,7 @@ jobs:
           fi
 
           cat << EOF > release_notes.md
-          # 🎯 OnePlus 12 Kernel with KernelSU Next & SUSFS $SUSFS_BASE_VERSION
+          # OnePlus 12 Kernel with KernelSU Next & SUSFS $SUSFS_BASE_VERSION
           
           > **Build Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')  
           > **Kernel Uname:** $kernel_uname_display  
@@ -1082,7 +1082,7 @@ jobs:
           
           ---
           
-          ## 📦 Built Devices (${#device_info[@]} total)
+          ## Built Devices (${#device_info[@]} total)
           
           | Model | OS Version | Kernel Version | Kernel Uname | Features |
           |-------|------------|----------------|--------------|----------|
@@ -1102,7 +1102,7 @@ jobs:
           
           ---
           
-          ## 🔧 Build Configuration
+          ## Build Configuration
           
           | Component | Version/Setting |
           |-----------|----------------|
@@ -1140,10 +1140,10 @@ jobs:
           | **Kernel Uname Suffix** | \`${uname_suffix_global:-OP12-SUSFS}\` |
           | **Optimization Level** | \`$OPTIMIZE_LEVEL\` |
           | **MLGO** | $MLGO_STATUS |
-          | **Clean Build** | $( [ "$CLEAN_BUILD" = "true" ] && echo "✅ Yes (no ccache)" || echo "❌ No (ccache enabled)" ) |
+          | **Clean Build** | $( [ "$CLEAN_BUILD" = "true" ] && echo "Yes (no ccache)" || echo "No (ccache enabled)" ) |
           | **Compiler** | Clang (version varies by device) |
           
-          ### 📌 SUSFS Branch Mapping
+          ### SUSFS Branch Mapping
           
           | Kernel Version | SUSFS Commit |
           |----------------|--------------|
@@ -1153,9 +1153,9 @@ jobs:
           
           ---
           
-          ## ✨ Features & Capabilities
+          ## Features & Capabilities
           
-          ### 🔐 Root Management
+          ### Root Management
           EOF
           if [ "$ksu_type" == "KSUN" ]; then
             cat << EOF >> release_notes.md
@@ -1180,21 +1180,21 @@ jobs:
           EOF
           fi
           cat << EOF >> release_notes.md
-          ### 🛡️ Security & Privacy
+          ### Security & Privacy
           - **Baseband Guard (BBG)** - LSM-based baseband security
           - **SUSFS Hide Features**:
-            - ✅ SUS_PATH - Hide suspicious paths
-            - ✅ SUS_MOUNT - Hide mount points (No Cli Support)
-            - ✅ SUS_KSTAT - Spoof kernel statistics
-            - ✅ SPOOF_UNAME - Kernel version spoofing
-            - ✅ SPOOF_CMDLINE - Boot parameters spoofing
-            - ✅ OPEN_REDIRECT - File access redirection
-            - ✅ SUS_MAP - Memory mapping protection
-            - ✅ AVC_SPOOF - Spoof Procfs avc denial logs
+            - SUS_PATH - Hide suspicious paths
+            - SUS_MOUNT - Hide mount points (No Cli Support)
+            - SUS_KSTAT - Spoof kernel statistics
+            - SPOOF_UNAME - Kernel version spoofing
+            - SPOOF_CMDLINE - Boot parameters spoofing
+            - OPEN_REDIRECT - File access redirection
+            - SUS_MAP - Memory mapping protection
+            - AVC_SPOOF - Spoof Procfs avc denial logs
           - **Ptrace Leak Fix** - For kernels < 5.16
           - **Unicode Fix** - Prevent path traversal and other detections using non-printable Unicode codepoints [Experimental]
           
-          ### 🚀 Performance & Networking
+          ### Performance & Networking
           - **BBRv1** - Improved TCP congestion control
           - **BBRv3** - Improved TCP congestion control
           - **CAKE and PIE qdisc Support** - Better Net Schedulers
@@ -1205,7 +1205,7 @@ jobs:
           ${MLGO_FEATURE_LINE}- **ccache-accelerated builds** - Faster compilation times
           - **Optimisation Patches** - Memory, I/O, CPU scheduler, network and other general tunings
           
-          ### 🔧 System Features
+          ### System Features
           - **TMPFS_XATTR** - Extended attributes for tmpfs (Mountify support)
           - **TMPFS_POSIX_ACL** - POSIX ACLs for tmpfs
           - **HMBIRD SCX** - Scheduler extensions for all SM8750/MT6991 devices
@@ -1215,7 +1215,7 @@ jobs:
           
           ---
           
-          ## 📱 Manager Applications
+          ## Manager Applications
           
           ### Official Manager
           EOF
@@ -1245,7 +1245,7 @@ jobs:
           
           ---
           
-          ## 📥 Installation Instructions
+          ## Installation Instructions
           
           ### Prerequisites
           - Unlocked bootloader.
@@ -1266,7 +1266,7 @@ jobs:
           
           ---
           
-          ## 📜 Changelog
+          ## Changelog
           
           ### This Release
           - Updated SUSFS to $SUSFS_BASE_VERSION.
@@ -1288,20 +1288,17 @@ jobs:
           
           ---
           
-          ## 🙏 Credits
+          ## Credits
           
-          - **WildKernels (`fatalcoder524`)** - Build framework, compatibility layer & kernel patches ([WildKernels/OnePlus_KernelSU_SUSFS](https://github.com/WildKernels/OnePlus_KernelSU_SUSFS))
+          - **WildKernels (\`fatalcoder524\`)** - Build framework, compatibility layer & kernel patches ([WildKernels/OnePlus_KernelSU_SUSFS](https://github.com/WildKernels/OnePlus_KernelSU_SUSFS))
           - **KernelSU Next Team** - Root solution
           - **KernelSU Team** - Root solution
           - **simonpunk** - SUSFS development
           - **sidex15** - SUSFS userspace module
           - **osm0sis** - AnyKernel3 packaging
-          - **OnePlus (`OnePlusOSS`)** - Official kernel source code
+          - **OnePlus (\`OnePlusOSS\`)** - Official kernel source code
           - **Community Contributors** - Testing and feedback
-          
-          ---
-          
-          **⚡ Built with ❤️ by the community**
+
           
           EOF
           

@@ -1,143 +1,109 @@
-<div align="center">
-
 # OnePlus 12 KernelSU + SUSFS
 
-[![Device](https://img.shields.io/badge/Device-OnePlus%2012%20(waffle%20%2F%20SM8650)-red)](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS)
-[![KernelSU-Next](https://img.shields.io/badge/KernelSU_Next-Supported-green)](https://kernelsu-next.github.io/webpage/)
-[![KernelSU](https://img.shields.io/badge/KernelSU-Supported-green)](https://kernelsu.org/)
-[![SUSFS](https://img.shields.io/badge/SUSFS-Integrated-orange?logo=gitlab)](https://gitlab.com/simonpunk/susfs4ksu)
-[![Releases](https://img.shields.io/github/v/release/Enawba/OnePlus12_KernelSU_SUSFS?label=Latest%20Release)](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS/releases)
+GKI AnyKernel3 builds for the OnePlus 12 (`waffle` / SM8650) with KernelSU Next and SUSFS, built from OnePlus official sources (`OnePlusOSS`) and the WildKernels patch stack.
 
-</div>
+Latest builds: [Releases](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS/releases)
 
----
+## Disclaimer
 
-## ⚠️ Disclaimer
+Flashing a custom kernel can cause bootloops or data loss. Before flashing:
 
-Flashing a custom kernel carries a risk of bootloops or data loss. Please make sure to:
-- 💾 Back up your data and your stock `boot.img` / `init_boot.img` before flashing
-- 🧠 Understand how to restore stock boot images via `fastboot` if needed
-- By flashing this kernel, **YOU** are choosing to make these modifications and assume full responsibility.
+- Back up your data and your stock `boot.img` / `init_boot.img`.
+- Know how to restore the stock boot images with `fastboot`.
 
-<div align="center">
+You flash this kernel at your own risk.
 
-# **🚨 Proceed at your own risk!**
-
-</div>
-
----
-
-## 📱 Device Information & Compatibility
-
-This repository builds **OnePlus 12 (`waffle`)** GKI AnyKernel3 packages based on OnePlus Official Sources (`OnePlusOSS`) and WildKernels' patch stack.
+## Device and compatibility
 
 | Property | Value |
 |---|---|
-| **Device** | OnePlus 12 (`waffle`) |
-| **Supported Models** | `CPH2573`, `CPH2581`, `CPH2583` (`EX01`), `PJD110` (`CN01`) |
-| **SoC / Platform** | Qualcomm Snapdragon 8 Gen 3 (`SM8650` / `pineapple`) |
-| **Kernel KMI** | `android14-6.1` |
-| **Supported ROMs** | Stock OxygenOS / ColorOS only |
-| **Kernel `uname`** | `<kernel>-android14-OP12-SUSFS`|
+| Device | OnePlus 12 (`waffle`) |
+| Models | `CPH2573`, `CPH2581`, `CPH2583` (`EX01`), `PJD110` (`CN01`) |
+| SoC / platform | Snapdragon 8 Gen 3 (`SM8650` / `pineapple`) |
+| Kernel KMI | `android14-6.1` |
+| ROMs | Stock OxygenOS / ColorOS only |
+| Kernel `uname` | `<kernel>-android14-OP12-SUSFS` |
 
-### Supported OS & Kernel Versions
+### Supported OS and kernel versions
 
-| OS Version | Kernel Version(s) | Source Tree |
+| OS version | Kernel version(s) | Source tree |
 |---|---|---|
-| **Android 17** | `android14-6.1.157` | [Enawba/android_kernel_common_oneplus_sm8650](https://github.com/Enawba/android_kernel_common_oneplus_sm8650/tree/oneplus/sm8650_c_17.0.0_oneplus12) *(6.1.141 → 6.1.157 `android14-6.1-2025-12_r24` merge)* |
-| **Android 16** | `android14-6.1.141`, `android14-6.1.118` | `OnePlusOSS/android_kernel_common_oneplus_sm8650` |
-| **Android 15** | `android14-6.1.118`, `android14-6.1.75` | `OnePlusOSS/android_kernel_common_oneplus_sm8650` |
-| **Android 14** | `android14-6.1.57` | `OnePlusOSS/android_kernel_common_oneplus_sm8650` |
+| Android 17 | `android14-6.1.157` | [Enawba/android_kernel_common_oneplus_sm8650](https://github.com/Enawba/android_kernel_common_oneplus_sm8650/tree/oneplus/sm8650_c_17.0.0_oneplus12) (6.1.141 to 6.1.157, `android14-6.1-2025-12_r24` merge) |
+| Android 16 | `android14-6.1.141`, `android14-6.1.118` | `OnePlusOSS/android_kernel_common_oneplus_sm8650` |
+| Android 15 | `android14-6.1.118`, `android14-6.1.75` | `OnePlusOSS/android_kernel_common_oneplus_sm8650` |
+| Android 14 | `android14-6.1.57` | `OnePlusOSS/android_kernel_common_oneplus_sm8650` |
 
-> **Note:** Always verify your running kernel (`uname -r`) matches the target ZIP version before flashing. Do not flash an older kernel sublevel than your installed firmware.
+Check that your running kernel (`uname -r`) matches the ZIP version before flashing. Do not flash a kernel with a lower sublevel than your installed firmware.
 
----
+## Features
 
-## 🔗 Additional Resources
+- KernelSU / KernelSU Next root, compatible with the WildKSU manager
+- SUSFS (`susfs4ksu`): mount, path, kstat, uname, cmdline and memory-map hiding, plus ADB JDWP socket hiding
+- Baseband Guard (BBG): LSM that protects critical partitions
+- BBRv1 and BBRv3 TCP congestion control
+- CAKE and PIE qdiscs
+- ThinLTO
+- MLGO (`-mllvm -regalloc-enable-advisor=release`), only when the toolchain Clang supports it. The stock OP12 Clang `r487747c` does not.
+- Memory, I/O, CPU scheduler and network tuning patches
+- TTL / HL target support
+- IP set and IPv6 NAT
+- tmpfs xattr and POSIX ACL (for meta-modules and Mountify)
+- Unicode bypass fix for path traversal using non-printable codepoints
+- Droidspaces container support
+- NTSync
+- Faster SDP charging: 900 mA instead of 500 mA on USB data ports that support it (USB 3.0)
 
-- 📦 [Releases (AnyKernel3 ZIPs)](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS/releases)
-- 🩹 [WildKernels Kernel Patches](https://github.com/WildKernels/kernel_patches)
-- ⚡ [Kernel Flasher](https://github.com/fatalcoder524/KernelFlasher)
-- 🔧 [KernelSU-Next Manager](https://github.com/KernelSU-Next/KernelSU-Next/releases) / [WildKSU Manager](https://github.com/WildKernels/Wild_KSU/releases)
-- 🥷 [SUSFS Userspace Module](https://github.com/sidex15/ksu_module_susfs/releases)
+## Installation
 
----
+Requirements:
 
-## ✨ Features
+- Unlocked bootloader
+- Backup of the stock `boot.img` / `init_boot.img` for your exact OxygenOS / ColorOS build
+- Existing root (Magisk, KernelSU or APatch) to use Kernel Flasher
 
-- 🔐 **KernelSU / KernelSU-Next**: Kernel-mode root solution for Android GKI devices
-- 🔥 **WildKSU Manager Support**: Compatible with WildKernels' custom root manager
-- 🥷 **SUSFS**: Integrated `susfs4ksu` kernel patches for mount, path, kstat, uname, cmdline, and memory-map hiding, plus ADB JDWP socket hiding
-- 🛡️ **BBG (Baseband Guard)**: LSM-based security protecting critical device partitions
-- 🖧 **BBRv1 & BBRv3**: Improved TCP congestion control
-- 🚦 **CAKE & PIE qdisc Support**: Better network schedulers
-- ✅ **Thin LTO**: Link Time Optimization enabled
-- ✅ **MLGO**: Machine Learning-Guided Optimization (`-mllvm -regalloc-enable-advisor=release`), applied only when the toolchain's Clang supports it (the stock OP12 Clang `r487747c` does not)
-- 🚀 **Optimisation Patches**: Memory, I/O, CPU scheduler, and network tunings
-- 🌐 **TTL Target Support**: Network packet TTL/HL modification
-- 🧱 **IP Set & IPv6 NAT Support**: Advanced firewall and IPv6 NAT capabilities
-- ⚡️ **TMPFS XATTR / POSIX ACL**: Extended tmpfs support for meta-modules and Mountify
-- </> **Unicode Bypass Fix**: Mitigates path traversal detections using non-printable Unicode codepoints
-- 🖥️ **Droidspaces Support**: Portable Linux container support
-- 🔃 **NTSync**: Low-latency Windows NT synchronization primitives
-- 🔌 **Faster SDP charging**: Allow 900 mA instead of 500 mA on USB data (SDP) ports when the host port supports 900 mA (USB 3.0)
+Steps:
 
----
+1. Download the `AK3_OP12_*.zip` that matches your Android and kernel version from [Releases](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS/releases).
+2. If you are switching from another root method:
+   - Magisk: do a full Magisk uninstall after flashing the ZIP.
+   - KernelSU LKM (patched `init_boot` / `boot`): restore the stock image first so LKM does not conflict with GKI KernelSU.
+   - APatch: clean up `/data/adb` leftovers after flashing the ZIP.
+3. Flash the ZIP to the active slot with [Kernel Flasher](https://github.com/fatalcoder524/KernelFlasher/releases).
+4. Install the [KernelSU Next](https://github.com/KernelSU-Next/KernelSU-Next/releases) or [WildKSU](https://github.com/WildKernels/Wild_KSU/releases) manager, then flash [ksu_module_susfs](https://github.com/sidex15/ksu_module_susfs/releases) from the manager.
+5. Reboot and check `uname -r` and root status.
 
-## 📋 Installation Instructions
+## Upstream source monitor
 
-### Prerequisites
-- Unlocked bootloader on your **OnePlus 12**
-- Stock `boot.img` / `init_boot.img` backed up for your exact current OxygenOS/ColorOS build
-- Existing root access (Magisk / KernelSU / APatch) to flash via Kernel Flasher
+The [`op12-source-monitor.yml`](.github/workflows/op12-source-monitor.yml) workflow checks [`OnePlusOSS`](https://github.com/OnePlusOSS) every 12 hours, and on manual dispatch, for OnePlus 12 updates in:
 
-### Steps (via Kernel Flasher)
-1. Download the matching `AK3_OP12_*.zip` for your Android & kernel version from [Releases](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS/releases).
-2. If migrating from another root method:
-   - **Magisk:** Perform a complete Magisk uninstall **after** flashing the AnyKernel3 ZIP.
-   - **KernelSU LKM (`init_boot`/`boot` patched):** Restore stock `init_boot.img` / `boot.img` first so LKM does not conflict with GKI KernelSU.
-   - **APatch:** Clean up `/data/adb` leftovers **after** flashing the AnyKernel3 ZIP.
-3. Flash the AnyKernel3 ZIP to your active slot using [Kernel Flasher](https://github.com/fatalcoder524/KernelFlasher/releases).
-4. Install the matching [KernelSU-Next](https://github.com/KernelSU-Next/KernelSU-Next/releases) (or [WildKSU](https://github.com/WildKernels/Wild_KSU/releases)) Manager APK and flash [sidex15/ksu_module_susfs](https://github.com/sidex15/ksu_module_susfs/releases) inside the manager.
-5. Reboot and verify `uname -r` and root status.
-
----
-
-## 🔍 Upstream Source Monitor
-
-An automated GitHub Actions workflow ([`op12-source-monitor.yml`](.github/workflows/op12-source-monitor.yml)) checks [`OnePlusOSS`](https://github.com/OnePlusOSS) every 12 hours (and on manual dispatch) for **OnePlus 12 (`waffle`)** updates across:
 - `OnePlusOSS/kernel_manifest` (`oneplus/sm8650` files matching `oneplus_12*`)
-- `OnePlusOSS/android_kernel_common_oneplus_sm8650`, `android_kernel_modules_and_devicetree_oneplus_sm8650`, and `android_kernel_oneplus_sm8650` (`*oneplus12*` / `waffle` branches, commit SHAs, and kernel `Makefile` sublevels)
-- Newly added `SM8650` / `OnePlus 12` repositories
+- `OnePlusOSS/android_kernel_common_oneplus_sm8650`, `android_kernel_modules_and_devicetree_oneplus_sm8650` and `android_kernel_oneplus_sm8650` (`*oneplus12*` / `waffle` branches, commit SHAs and `Makefile` sublevels)
+- New `SM8650` / OnePlus 12 repositories
 
-Snapshot state is persisted on the [`monitor-state`](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS/tree/monitor-state) branch, and any new upstream branch, manifest, or kernel update automatically opens a GitHub Issue labeled `op12-source-update`.
+State is stored on the [`monitor-state`](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS/tree/monitor-state) branch. A new branch, manifest or kernel update opens an issue labeled `op12-source-update`.
 
----
+## Links
 
-## 🌟 Special Thanks
+- [WildKernels kernel patches](https://github.com/WildKernels/kernel_patches)
+- [Kernel Flasher](https://github.com/fatalcoder524/KernelFlasher)
+- [KernelSU Next manager](https://github.com/KernelSU-Next/KernelSU-Next/releases) / [WildKSU manager](https://github.com/WildKernels/Wild_KSU/releases)
+- [SUSFS userspace module](https://github.com/sidex15/ksu_module_susfs/releases)
 
-Based on **[WildKernels/OnePlus_KernelSU_SUSFS](https://github.com/WildKernels/OnePlus_KernelSU_SUSFS)** (`fatalcoder524` and contributors).
+## Credits
 
-<div align="center">
+Based on [WildKernels/OnePlus_KernelSU_SUSFS](https://github.com/WildKernels/OnePlus_KernelSU_SUSFS) by fatalcoder524 and contributors.
 
-| 🔧 **Project** | 👨‍💻 **Developer / Maintainer** | 🔗 **Link** |
-|:---------------:|:----------------:|:-----------:|
-| **WildKernels** | fatalcoder524 & contributors | [![GitHub](https://img.shields.io/badge/GitHub-WildKernels-blue?style=flat-square&logo=github)](https://github.com/WildKernels/OnePlus_KernelSU_SUSFS) |
-| **Kernel Patches** | WildKernels | [![GitHub](https://img.shields.io/badge/GitHub-kernel__patches-blue?style=flat-square&logo=github)](https://github.com/WildKernels/kernel_patches) |
-| **KernelSU** | tiann | [![GitHub](https://img.shields.io/badge/GitHub-tiann-blue?style=flat-square&logo=github)](https://github.com/tiann/KernelSU) |
-| **KernelSU-Next** | rifsxd | [![GitHub](https://img.shields.io/badge/GitHub-rifsxd-blue?style=flat-square&logo=github)](https://github.com/KernelSU-Next/KernelSU-Next) |
-| **Magic-KSU** | 5ec1cff | [![GitHub](https://img.shields.io/badge/GitHub-5ec1cff-blue?style=flat-square&logo=github)](https://github.com/5ec1cff/KernelSU) |
-| **SUSFS** | simonpunk | [![GitLab](https://img.shields.io/badge/GitLab-simonpunk-orange?style=flat-square&logo=gitlab)](https://gitlab.com/simonpunk/susfs4ksu.git) |
-| **SUSFS Module** | sidex15 | [![GitHub](https://img.shields.io/badge/GitHub-sidex15-blue?style=flat-square&logo=github)](https://github.com/sidex15/ksu_module_susfs) |
-| **AnyKernel3** | osm0sis | [![GitHub](https://img.shields.io/badge/GitHub-osm0sis-blue?style=flat-square&logo=github)](https://github.com/osm0sis/AnyKernel3) |
-| **Baseband Guard** | vc-teahouse | [![GitHub](https://img.shields.io/badge/GitHub-vc--teahouse-blue?style=flat-square&logo=github)](https://github.com/vc-teahouse/Baseband-guard.git) |
-| **Droidspaces** | ravindu644 | [![GitHub](https://img.shields.io/badge/GitHub-ravindu644-blue?style=flat-square&logo=github)](https://github.com/ravindu644/Droidspaces-OSS.git) |
-| **OnePlus Kernel Source** | OnePlusOSS | [![GitHub](https://img.shields.io/badge/GitHub-OnePlusOSS-blue?style=flat-square&logo=github)](https://github.com/OnePlusOSS) |
+- [WildKernels kernel patches](https://github.com/WildKernels/kernel_patches)
+- [KernelSU](https://github.com/tiann/KernelSU) by tiann
+- [KernelSU Next](https://github.com/KernelSU-Next/KernelSU-Next) by rifsxd
+- [Magic-KSU](https://github.com/5ec1cff/KernelSU) by 5ec1cff
+- [SUSFS](https://gitlab.com/simonpunk/susfs4ksu) by simonpunk
+- [SUSFS module](https://github.com/sidex15/ksu_module_susfs) by sidex15
+- [AnyKernel3](https://github.com/osm0sis/AnyKernel3) by osm0sis
+- [Baseband Guard](https://github.com/vc-teahouse/Baseband-guard) by vc-teahouse
+- [Droidspaces](https://github.com/ravindu644/Droidspaces-OSS) by ravindu644
+- [OnePlus kernel source](https://github.com/OnePlusOSS) by OnePlusOSS
 
-</div>
+## Issues
 
----
-
-## 💬 Support
-
-If you encounter any issues specific to these OnePlus 12 builds, open an issue in [Enawba/OnePlus12_KernelSU_SUSFS](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS/issues).
+Report problems with these builds in [Enawba/OnePlus12_KernelSU_SUSFS issues](https://github.com/Enawba/OnePlus12_KernelSU_SUSFS/issues).
