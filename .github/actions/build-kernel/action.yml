@@ -59,6 +59,9 @@ outputs:
   kernel_uname:
     description: 'Short kernel uname -r string (e.g. 6.1.157-android14-OP12-SUSFS)'
     value: ${{ steps.collect_stats.outputs.kernel_uname }}
+  mlgo_applied:
+    description: 'true if the MLGO regalloc advisor flag was accepted by clang and used for the build'
+    value: ${{ steps.build_kernel_step.outputs.mlgo_applied }}
   ksu_version:
     description: 'KernelSU version number'
     value: ${{ steps.save_metadata.outputs.ksu_version }}
@@ -1928,9 +1931,13 @@ runs:
           fi
         }
 
+        MLGO_APPLIED=false
         if [[ "${{ inputs.mlgo }}" = "true" ]]; then
           add_kcflag -mllvm -regalloc-enable-advisor=release
+          [[ "${KCFLAGS:-}" == *"-regalloc-enable-advisor=release"* ]] && MLGO_APPLIED=true
         fi
+        echo "MLGO applied: $MLGO_APPLIED"
+        echo "mlgo_applied=$MLGO_APPLIED" >> "$GITHUB_OUTPUT"
 
         export KCFLAGS="${KCFLAGS:-} $MAP $MPMAP $FPMAP -no-canonical-prefixes -fdiagnostics-color=never -Qunused-arguments -Wno-unused-command-line-argument -D__ANDROID_COMMON_KERNEL__"
         export KCPPFLAGS="${KCPPFLAGS:-} $MAP $MPMAP $FPMAP"

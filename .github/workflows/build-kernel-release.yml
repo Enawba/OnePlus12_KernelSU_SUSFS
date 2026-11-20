@@ -590,6 +590,7 @@ jobs:
     outputs:
       ksun_ver: ${{ steps.build-stat.outputs.ksu_version }}
       ksu_ver: ${{ steps.build-stat.outputs.ksu_version }}
+      mlgo_applied: ${{ steps.build.outputs.mlgo_applied }}
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v6
@@ -945,7 +946,22 @@ jobs:
           ksu_resolved_hash="${{ needs.set-op-model.outputs.ksu_resolved_hash }}"
           
           OPTIMIZE_LEVEL="${{ inputs.optimize_level }}"
-          MLGO="${{ inputs.mlgo }}"
+          # MLGO is only reported when clang actually accepted the flag
+          MLGO_REQUESTED="${{ inputs.mlgo }}"
+          MLGO="${{ needs.build.outputs.mlgo_applied || 'false' }}"
+          if [ "$MLGO" = "true" ]; then
+            MLGO_STATUS="✅ Enabled"
+            MLGO_FEATURE_LINE=$'- **MLGO** - Machine Learning-Guided Optimization (`-mllvm -regalloc-enable-advisor=release`)\n'
+            MLGO_CHANGELOG=" & MLGO"
+          else
+            if [ "$MLGO_REQUESTED" = "true" ]; then
+              MLGO_STATUS="❌ Not applied (compiler does not support MLGO)"
+            else
+              MLGO_STATUS="❌ Disabled"
+            fi
+            MLGO_FEATURE_LINE=""
+            MLGO_CHANGELOG=""
+          fi
           CLEAN_BUILD="${{ inputs.clean_build }}"
           
           # Hash map for GKI version
@@ -1123,7 +1139,7 @@ jobs:
           | **SUSFS Version** | \`$SUSFS_BASE_VERSION\` |
           | **Kernel Uname Suffix** | \`${uname_suffix_global:-OP12-SUSFS}\` |
           | **Optimization Level** | \`$OPTIMIZE_LEVEL\` |
-          | **MLGO** | \`$MLGO\` |
+          | **MLGO** | $MLGO_STATUS |
           | **Clean Build** | $( [ "$CLEAN_BUILD" = "true" ] && echo "✅ Yes (no ccache)" || echo "❌ No (ccache enabled)" ) |
           | **Compiler** | Clang (version varies by device) |
           
@@ -1186,8 +1202,7 @@ jobs:
           - **IP Set & IPv6 NAT Support** - Advanced firewall capabilities and IPv6 NAT Support
           - **TTL Target Support** - Network packet manipulation
           - **LTO (Link Time Optimization)** - Optimized binary size and performance
-          - **MLGO** - Machine Learning-Guided Optimization (`-mllvm -regalloc-enable-advisor=release`)
-          - **ccache-accelerated builds** - Faster compilation times
+          ${MLGO_FEATURE_LINE}- **ccache-accelerated builds** - Faster compilation times
           - **Optimisation Patches** - Memory, I/O, CPU scheduler, network and other general tunings
           
           ### 🔧 System Features
@@ -1259,7 +1274,7 @@ jobs:
           - Enhanced SUSFS hiding capabilities.
           - Added IP_SET, IPv6 NAT and TTL support.
           - Added TMPFS_XATTR and TMPFS_POSIX_ACL support for Mountify.
-          - Compiler optimizations (${{ inputs.optimize_level }} & MLGO).
+          - Compiler optimizations (${{ inputs.optimize_level }}${MLGO_CHANGELOG}).
           - Additional General Optimisations.
           - Wild_KSU Manager Support.
           - Unicode Bypass Fix

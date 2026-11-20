@@ -72,7 +72,7 @@ This repository builds **OnePlus 12 (`waffle`)** GKI AnyKernel3 packages based o
 - 🖧 **BBRv1 & BBRv3**: Improved TCP congestion control
 - 🚦 **CAKE & PIE qdisc Support**: Better network schedulers
 - ✅ **Thin LTO**: Link Time Optimization enabled
-- ✅ **MLGO**: Machine Learning-Guided Optimization (`-mllvm -regalloc-enable-advisor=release`)
+- ✅ **MLGO**: Machine Learning-Guided Optimization (`-mllvm -regalloc-enable-advisor=release`), applied only when the toolchain's Clang supports it (the stock OP12 Clang `r487747c` does not)
 - 🚀 **Optimisation Patches**: Memory, I/O, CPU scheduler, and network tunings
 - 🌐 **TTL Target Support**: Network packet TTL/HL modification
 - 🧱 **IP Set & IPv6 NAT Support**: Advanced firewall and IPv6 NAT capabilities
