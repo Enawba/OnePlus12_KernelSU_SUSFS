@@ -2292,7 +2292,39 @@ runs:
             patch -p1 < "$KERNEL_PATCHES_FOLDER/common/bbg/0001-Enable-volume-input-to-enable-bbg-efisp-patch.patch"
           ;;
         esac
-        
+
+        # Rebrand the AnyKernel3 installer (replace upstream banner, kernel.string and footer)
+        REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+        cat > banner <<'EOF'
+          ___  ____  _ ____
+         / _ \|  _ \/ |___ \
+        | | | | |_) | | __) |
+        | |_| |  __/| |/ __/
+         \___/|_|   |_|_____|
+
+          KernelSU + SUSFS
+        EOF
+        sed -i "s|^kernel.string=.*|kernel.string=OP12-SUSFS Kernel by ${{ github.repository_owner }}|" anykernel.sh
+        sed -i 's/Wild Kernels Supported:/GKI Kernel Supported:/' anykernel.sh
+        # Drop the upstream footer (everything from the first bare 'ui_print " "' line) and add ours
+        sed -i '/^ui_print " "$/,$d' anykernel.sh
+        {
+          echo 'ui_print " "'
+          echo "ui_print \"OP12-SUSFS Kernel ${KERNEL_FULL_VER:-}\""
+          echo "ui_print \"${{ inputs.ksu_type }} ${KSUVER:-unknown} | SUSFS ${SUSVER:-n/a}\""
+          echo 'ui_print " "'
+          echo 'ui_print "GitHub Repository:"'
+          echo "ui_print \"$REPO_URL\""
+          echo 'ui_print " "'
+          echo 'ui_print "Thank you for using OP12-SUSFS Kernel!"'
+          echo 'ui_print " "'
+        } >> anykernel.sh
+        if grep -qiE "wild ?kernels|thewildjames|t\.me/wild" anykernel.sh banner; then
+          echo "::error::Upstream AnyKernel3 branding still present after rebrand"
+          grep -niE "wild ?kernels|thewildjames|t\.me/wild" anykernel.sh banner
+          exit 1
+        fi
+
         ZIP_MODEL=$(echo "$OP_MODEL" | sed 's/-[0-9]\+\.[0-9]\+\.[0-9]\+$//')
         if [ "${{ env.OP_SUSFS }}" = true ]; then
           ZIP_NAME="AK3_${ZIP_MODEL}_${OP_OS_VERSION}_${KERNEL_FULL_VER}_${{ inputs.ksu_type }}_${KSUVER:-unknown}_SuSFS_${SUSVER:-unknown}.zip"
