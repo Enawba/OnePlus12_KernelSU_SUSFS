@@ -266,7 +266,6 @@ jobs:
           
           # SUSFS hash fetch
           SUSFS_REPO="https://gitlab.com/simonpunk/susfs4ksu.git"
-          GITLAB_PROJECT_PATH="simonpunk/susfs4ksu"
           
           declare -A default_branches=(
             ["android12-5.10"]="gki-android12-5.10"
@@ -299,44 +298,35 @@ jobs:
             default_val="${default_branches[$key]}"
             user_val="${user_inputs[$key]:-$default_val}"
             
-            # Build GraphQL query — include blob fetch only when releasing
-            HASH_QUERY="{ project(fullPath: \"${GITLAB_PROJECT_PATH}\") { repository { ch: commit(ref: \"${user_val}\") { sha } } } }"
-            RELEASE_QUERY="{ project(fullPath: \"${GITLAB_PROJECT_PATH}\") { repository { ch: commit(ref: \"${user_val}\") { sha } blobs(paths: [\"kernel_patches/include/linux/susfs.h\"], ref: \"${user_val}\") { nodes { rawBlob } } } } }"
-            
-            if [ "${{ inputs.make_release }}" = "true" ]; then
-              GL_QUERY="$RELEASE_QUERY"
-            else
-              GL_QUERY="$HASH_QUERY"
-            fi
-            
+            # Resolve over the git protocol: GitLab's API/raw endpoints are rate-limited
+            # per IP for unauthenticated traffic (HTTP 429 on shared GitHub runners).
             MAX_RETRIES=3
             RETRY_COUNT=0
-            RETRY_DELAY=5
             resolved=""
-            
+            SUSFS_GIT_DIR=$(mktemp -d)
+            git -C "$SUSFS_GIT_DIR" init -q
+
             until [ $RETRY_COUNT -ge $MAX_RETRIES ]; do
-              RESPONSE=$(curl -s --fail -G "https://gitlab.com/api/graphql" --data-urlencode "query=$GL_QUERY")
-              EXIT_CODE=$?
-              
-              if [ $EXIT_CODE -eq 0 ] && [ -n "$RESPONSE" ]; then
-                resolved=$(echo "$RESPONSE" | jq -r '.data.project.repository.ch.sha // empty')
-                if [ -n "$resolved" ] && [ "$resolved" != "null" ]; then
+              if git -C "$SUSFS_GIT_DIR" fetch -q --depth 1 --filter=blob:none "$SUSFS_REPO" "$user_val"; then
+                resolved=$(git -C "$SUSFS_GIT_DIR" rev-parse FETCH_HEAD 2>/dev/null || true)
+                if [ -n "$resolved" ]; then
                   echo "  ✅ Query for $key Success"
-                  
+
                   if [ "${{ inputs.make_release }}" = "true" ]; then
-                    extracted=$(echo "$RESPONSE" | jq -r '.data.project.repository.blobs.nodes[0].rawBlob // empty' | grep '#define SUSFS_VERSION' | awk -F'"' '{print $2}')
+                    extracted=$(git -C "$SUSFS_GIT_DIR" show FETCH_HEAD:kernel_patches/include/linux/susfs.h 2>/dev/null | grep '#define SUSFS_VERSION' | awk -F'"' '{print $2}' || true)
                     susfs_versions_per_key[$key]="${extracted:-unknown}"
                     echo "  ✅ $key → SUSFS_VERSION = ${extracted:-unknown}"
                   fi
-                  
+
                   break
                 fi
               fi
-              
+
               RETRY_COUNT=$((RETRY_COUNT + 1))
-              echo "::warning::GitLab GraphQL API failed (Attempt $RETRY_COUNT/$MAX_RETRIES). Retrying..."
-              sleep $RETRY_DELAY
+              echo "::warning::SUSFS git fetch failed (Attempt $RETRY_COUNT/$MAX_RETRIES). Retrying..."
+              sleep $((RETRY_COUNT * 5))
             done
+            rm -rf "$SUSFS_GIT_DIR"
             
             # Final Validation — SUSFS hash
             if [ -z "$resolved" ] || [ "$resolved" = "null" ]; then

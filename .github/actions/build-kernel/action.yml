@@ -896,8 +896,23 @@ runs:
         
         if [ "${{ env.OP_SUSFS }}" = true ]; then
           echo "Using SUSFS branch/commit: $SUSFS_BRANCH"
-          if ! retry_fetch_archive "https://gitlab.com/simonpunk/susfs4ksu.git" "$SUSFS_BRANCH"; then
-            echo "::error::Failed to fetch SUSFS archive after multiple attempts"
+          # Use the git protocol: GitLab's archive API is rate-limited per IP for
+          # unauthenticated traffic (HTTP 429 on shared GitHub runners).
+          susfs_fetched=false
+          for attempt in 1 2 3; do
+            echo "🔄 Attempt $attempt/3: fetching susfs4ksu ($SUSFS_BRANCH)"
+            rm -rf susfs4ksu
+            if git init -q susfs4ksu \
+              && git -C susfs4ksu fetch -q --depth 1 "https://gitlab.com/simonpunk/susfs4ksu.git" "$SUSFS_BRANCH" \
+              && git -C susfs4ksu checkout -q FETCH_HEAD; then
+              susfs_fetched=true
+              echo "✅ Success: susfs4ksu synced ($(git -C susfs4ksu rev-parse --short HEAD))"
+              break
+            fi
+            sleep $((attempt * 5))
+          done
+          if [ "$susfs_fetched" != true ]; then
+            echo "::error::Failed to fetch SUSFS after multiple attempts"
             exit 1
           fi
           echo "SUSFS_COMMIT_SHA=$SUSFS_BRANCH" >> $GITHUB_ENV
