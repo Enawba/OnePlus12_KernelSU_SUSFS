@@ -21,8 +21,10 @@ You flash this kernel at your own risk.
 | Models | `CPH2573`, `CPH2581`, `CPH2583` (`EX01`), `PJD110` (`CN01`) |
 | SoC / platform | Snapdragon 8 Gen 3 (`SM8650` / `pineapple`) |
 | Kernel KMI | `android14-6.1` |
-| ROMs | Stock OxygenOS / ColorOS only |
+| ROMs | Stock ColorOS 17 (current); older builds: stock OxygenOS / ColorOS 14–16 |
 | Kernel `uname` | `<kernel>-android14-OP12-SUSFS` |
+
+> **Note:** OnePlus has discontinued OxygenOS. From version 17 onward the stock firmware is **ColorOS 17**, and all builds here target ColorOS 17 going forward.
 
 ### Supported OS and kernel versions
 
@@ -58,7 +60,7 @@ Check that your running kernel (`uname -r`) matches the ZIP version before flash
 Requirements:
 
 - Unlocked bootloader
-- Backup of the stock `boot.img` / `init_boot.img` for your exact OxygenOS / ColorOS build
+- Backup of the stock `boot.img` / `init_boot.img` for your exact ColorOS build
 - Existing root (Magisk, KernelSU or APatch) to use Kernel Flasher
 
 Steps:

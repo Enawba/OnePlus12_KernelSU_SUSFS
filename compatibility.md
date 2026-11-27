@@ -6,7 +6,9 @@
 - **Hardware Models:** `CPH2573`, `CPH2581`, `CPH2583`, `PJD110`
 - **SoC:** Qualcomm Snapdragon 8 Gen 3 (`SM8650` / `pineapple`)
 - **Kernel KMI:** `android14-6.1`
-- **Supported ROMs:** Stock OxygenOS / ColorOS only
+- **Supported ROMs:** Stock ColorOS 17 (current); older builds: stock OxygenOS / ColorOS 14–16
+
+> **Note:** OnePlus has discontinued OxygenOS. From version 17 onward the stock firmware is **ColorOS 17**, and all builds here target ColorOS 17 going forward.
 
 > **Important:**
 > - Always back up your stock `boot.img` / `init_boot.img` before flashing.

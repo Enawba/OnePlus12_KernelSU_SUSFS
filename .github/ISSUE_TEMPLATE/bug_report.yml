@@ -40,7 +40,7 @@ body:
     attributes:
       label: OOS / COS Version
       description: Full firmware version from Settings → About Device.
-      placeholder: "e.g. ColorOS 17.0.0 / OxygenOS 17.0.0"
+      placeholder: "e.g. ColorOS 17.0.0"
     validations:
       required: true
 

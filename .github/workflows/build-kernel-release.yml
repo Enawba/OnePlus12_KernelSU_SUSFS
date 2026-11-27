@@ -845,7 +845,7 @@ jobs:
       REPO_NAME: ${{ github.event.repository.name }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       SUSFS_BASE_VERSION: ${{ needs.set-op-model.outputs.susfs_base_version }}
-      RELEASE_NAME: 'OnePlus 12 Kernel With KernelSU Next & SUSFS ${{ needs.set-op-model.outputs.susfs_base_version }}'
+      RELEASE_NAME: 'OP12-SUSFS Kernel for OnePlus 12 (ColorOS 17) - KernelSU Next & SUSFS ${{ needs.set-op-model.outputs.susfs_base_version }}'
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v6
@@ -1069,7 +1069,7 @@ jobs:
           rm -f device_rows.md
 
           cat << EOF > release_notes.md
-          **OnePlus 12 (SM8650)** · ColorOS / OxygenOS 17 · Kernel $kernel_uname_display · KernelSU Next + SUSFS $SUSFS_BASE_VERSION
+          **OnePlus 12 (SM8650)** · ColorOS 17 · Kernel $kernel_uname_display · KernelSU Next + SUSFS $SUSFS_BASE_VERSION
           
           ## Changelog
           
