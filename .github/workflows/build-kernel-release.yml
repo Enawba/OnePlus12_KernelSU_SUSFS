@@ -1062,203 +1062,17 @@ jobs:
             kernel_uname_display='`6.1.157-android14-OP12-SUSFS`'
           fi
 
-          cat << EOF > release_notes.md
-          # OnePlus 12 Kernel with KernelSU Next & SUSFS $SUSFS_BASE_VERSION
-          
-          > **Build Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')  
-          > **Kernel Uname:** $kernel_uname_display  
-          > **Build ID:** \`${{ github.run_id }}\`  
-          > **Workflow:** [\`${{ github.workflow }}\`](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          
-          ---
-          
-          ## Built Devices (${#device_info[@]} total)
-          
-          | Model | OS Version | Kernel Version | Kernel Uname | Features |
-          |-------|------------|----------------|--------------|----------|
-          EOF
-          cat device_rows.md >> release_notes.md
-          rm -f device_rows.md
-          
-          if [ ${#device_info[@]} -gt 0 ]; then
-            first_entry=$(printf '%s\n' "${!device_info[@]}" | sort | head -n1)
-            IFS='|' read -r _ _ _ _ ksu_ver_global _ _ <<< "${device_info["$first_entry"]}"
-          else
+          if [ ${#device_info[@]} -eq 0 ]; then
             echo "::error::No device info found!" >&2
             exit 1
           fi
-          
-          cat << EOF >> release_notes.md
-          
-          ---
-          
-          ## Build Configuration
-          
-          | Component | Version/Setting |
-          |-----------|----------------|
-          EOF
-          # Display function: hash → direct hash, branch → branch (hash)
-          ksu_display_value() {
-            local input="$1"
-            local resolved="$2"
-            if [[ "$input" =~ ^[0-9a-f]{40}$ ]]; then
-              echo "$input"
-            else
-              echo "$input ($resolved)"
-            fi
-          }
-          
-          ksu_display=$(ksu_display_value "$ksu_ref" "$ksu_resolved_hash")
-          if [ "$ksu_type" == "KSUN" ]; then
-            cat << EOF >> release_notes.md
-          | **KernelSU Next Branch** | \`$ksu_display\` |
-          | **KernelSU Next Version** | \`$ksu_ver_global\` |
-          EOF
-          elif [ "$ksu_type" == "KSU" ]; then
-            cat << EOF >> release_notes.md
-          | **KernelSU Branch** | \`$ksu_display\` |
-          | **KernelSU Version** | \`$ksu_ver_global\` |
-          EOF
-          else
-            cat << EOF >> release_notes.md
-          | **Unknown KernelSU Fork Branch** | \`\` |
-          | **Unknown KernelSU Fork Version** | \`\` |
-          EOF
-          fi
-          cat << EOF >> release_notes.md
-          | **SUSFS Version** | \`$SUSFS_BASE_VERSION\` |
-          | **Kernel Uname Suffix** | \`${uname_suffix_global:-OP12-SUSFS}\` |
-          | **Optimization Level** | \`$OPTIMIZE_LEVEL\` |
-          | **MLGO** | $MLGO_STATUS |
-          | **Clean Build** | $( [ "$CLEAN_BUILD" = "true" ] && echo "Yes (no ccache)" || echo "No (ccache enabled)" ) |
-          | **Compiler** | Clang (version varies by device) |
-          
-          ### SUSFS Branch Mapping
-          
-          | Kernel Version | SUSFS Commit |
-          |----------------|--------------|
-          $(for key in "${active_gki_keys[@]}"; do
-            echo "| $key | \`${susfs_map[$key]:-unknown}\` |"
-          done)
-          
-          ---
-          
-          ## Features & Capabilities
-          
-          ### Root Management
-          EOF
-          if [ "$ksu_type" == "KSUN" ]; then
-            cat << EOF >> release_notes.md
-          - **KernelSU Next** - Next-generation kernel-level root solution
-          EOF
-          elif [ "$ksu_type" == "KSU" ]; then
-            cat << EOF >> release_notes.md
-          - **KernelSU** - Kernel-level root solution
-          EOF
-          fi
-          cat << EOF >> release_notes.md
-          - **SUSFS $SUSFS_BASE_VERSION** - Advanced hiding and security features
-          EOF
-          if [ "$ksu_type" == "KSUN" ] && [ "${ksu_ver_global:-0}" -lt 12884 ]; then
-            cat << EOF >> release_notes.md
-          - **Magic Mount Support** - Seamless file system modifications
-          EOF
-          fi
-          if [ "${ksu_ver_global:-0}" -lt 12884 ]; then
-            cat << EOF >> release_notes.md
-          - **Manual Hooks** - scope_min_manual_hooks_v1.4 for better compatibility
-          EOF
-          fi
-          cat << EOF >> release_notes.md
-          ### Security & Privacy
-          - **Baseband Guard (BBG)** - LSM-based baseband security
-          - **SUSFS Hide Features**:
-            - SUS_PATH - Hide suspicious paths
-            - SUS_MOUNT - Hide mount points (No Cli Support)
-            - SUS_KSTAT - Spoof kernel statistics
-            - SPOOF_UNAME - Kernel version spoofing
-            - SPOOF_CMDLINE - Boot parameters spoofing
-            - OPEN_REDIRECT - File access redirection
-            - SUS_MAP - Memory mapping protection
-            - AVC_SPOOF - Spoof Procfs avc denial logs
-          - **Ptrace Leak Fix** - For kernels < 5.16
-          - **Unicode Fix** - Prevent path traversal and other detections using non-printable Unicode codepoints [Experimental]
-          
-          ### Performance & Networking
-          - **BBRv1** - Improved TCP congestion control
-          - **BBRv3** - Improved TCP congestion control
-          - **CAKE and PIE qdisc Support** - Better Net Schedulers
-          - **Wireguard** - Built-in VPN support
-          - **IP Set & IPv6 NAT Support** - Advanced firewall capabilities and IPv6 NAT Support
-          - **TTL Target Support** - Network packet manipulation
-          - **LTO (Link Time Optimization)** - Optimized binary size and performance
-          ${MLGO_FEATURE_LINE}- **ccache-accelerated builds** - Faster compilation times
-          - **Optimisation Patches** - Memory, I/O, CPU scheduler, network and other general tunings
-          
-          ### System Features
-          - **TMPFS_XATTR** - Extended attributes for tmpfs (Mountify support)
-          - **TMPFS_POSIX_ACL** - POSIX ACLs for tmpfs
-          - **HMBIRD SCX** - Scheduler extensions for all SM8750/MT6991 devices
-          - **Droidspaces** - Support Portable Linux containers to run full Linux environments.
-          - **NTSync** - Provide high-performance, low-latency synchronization primitives compatible with the Windows NT kernel API
-          - **Faster SDP charging** - Allow 900 mA instead of 500 mA on (SDP) USB data ports. The host port must support 900 mA (USB 3.0).
-          
-          ---
-          
-          ## Manager Applications
-          
-          ### Official Manager
-          EOF
-          if [ "$ksu_type" == "KSUN" ]; then
-            cat << EOF >> release_notes.md
-          - **KernelSU Next Manager** (APK matching this kernel driver is attached to the release)  
-            → [GitHub Release](https://github.com/KernelSU-Next/KernelSU-Next/releases)
-          EOF
-          elif [ "$ksu_type" == "KSU" ]; then
-            cat << EOF >> release_notes.md
-          - **KernelSU Manager** (APK matching this kernel driver is attached to the release)  
-            → [GitHub Release](https://github.com/tiann/KernelSU/releases)
-          EOF
-          fi
-          cat << EOF >> release_notes.md
-          ### Community Managers
-          - **WildKSU Manager** (Recommended for additional features)  
-            → [GitHub Release](https://github.com/WildKernels/Wild_KSU/releases)
-          
-          ### Required Module
-          - **KSU SUSFS Module** (Required for SUSFS features)  
-            → [GitHub Release](https://github.com/sidex15/ksu_module_susfs/releases)
-          
-          ### Recomended Flasher
-          - **Kernel Flasher** (Required for flashing AnyKernel3 zips and backups and OTA)  
-            → [GitHub Release](https://github.com/fatalcoder524/KernelFlasher/releases)
-          
-          ---
-          
-          ## Installation Instructions
-          
-          ### Prerequisites
-          - Unlocked bootloader.
-          - Backup your current boot image.
-          - Have root access using Magisk / KernelSU / Apatch (Any forks).
-          
-          ### Via Kernel Flasher
-          1. Download the correct AnyKernel3 ZIP for your device.
-          2. If you previously used another root method, clean it up first:
-              a. **Magisk**: perform a complete uninstall **after flashing the AnyKernel3 ZIP**.
-              b. **KSU LKM (boot/init_boot/vendor_boot patched)**: Flash back the stock boot/init_boot/vendor_boot depending on what you patched.
-              c. **KSU GKI**: if you are 100% sure you already flashed stock init_boot/boot/vendor_boot, no action is needed; otherwise, follow the same steps as KSU LKM.
-              d. **APatch**: remove /data/adb contents to avoid leftover root conflicts **after flashing the AnyKernel3 ZIP**.
-          3. Flash the ZIP to the active slot using Kernel Flasher.
-          4. Install the KernelSU-Next Manager APK, same version as mentioned in the AnyKernel3 ZIP name.
-          5. Open the KernelSU-Next app.
-          6. Reboot the device if you performed any cleanup in step 2.
-          
-          ---
+          rm -f device_rows.md
+
+          cat << EOF > release_notes.md
+          **OnePlus 12 (SM8650)** · ColorOS / OxygenOS 17 · Kernel $kernel_uname_display · KernelSU Next + SUSFS $SUSFS_BASE_VERSION
           
           ## Changelog
           
-          ### This Release
           - Updated SUSFS to $SUSFS_BASE_VERSION.
           - Improved ccache build system.
           - Enhanced SUSFS hiding capabilities.
@@ -1273,23 +1087,11 @@ jobs:
           - Hide ADB JDWP sockets.
           - Allow 900 mA instead of 500 mA on (SDP) USB data ports.
           
-          ### Previous Releases
-          See [Releases Page](${{ github.server_url }}/${{ github.repository }}/releases)
+          Previous releases: [Releases Page](${{ github.server_url }}/${{ github.repository }}/releases)
           
           ---
           
-          ## Credits
-          
-          - **WildKernels (\`fatalcoder524\`)** - Build framework, compatibility layer & kernel patches ([WildKernels/OnePlus_KernelSU_SUSFS](https://github.com/WildKernels/OnePlus_KernelSU_SUSFS))
-          - **KernelSU Next Team** - Root solution
-          - **KernelSU Team** - Root solution
-          - **simonpunk** - SUSFS development
-          - **sidex15** - SUSFS userspace module
-          - **osm0sis** - AnyKernel3 packaging
-          - **OnePlus (\`OnePlusOSS\`)** - Official kernel source code
-          - **Community Contributors** - Testing and feedback
-
-          
+          **Credits:** based on [WildKernels/OnePlus_KernelSU_SUSFS](https://github.com/WildKernels/OnePlus_KernelSU_SUSFS) by \`fatalcoder524\` & contributors · KernelSU Next · KernelSU · SUSFS (simonpunk) · AnyKernel3 (osm0sis) · OnePlusOSS
           EOF
           
           echo "--- Final Release Notes ---"
